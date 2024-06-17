@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cloud/config/minio"
 	"cloud/config/mysql"
 	"cloud/config/redis"
 	"cloud/router"
@@ -29,7 +30,7 @@ func main() {
 	}
 	// 初始化数据库连接
 	mysqlConfig.InitDB()
-
+	minio.InitMinio()
 	var r = router.SetupRouter()
 	r.Run(":8080")
 

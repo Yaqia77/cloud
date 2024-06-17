@@ -12,5 +12,6 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.SessionMiddleware())
 	api := r.Group("/api")
 	UserRouter(api)
+	FileRouter(api)
 	return r
 }

@@ -76,6 +76,7 @@ func (m *MySQL) InitDB() {
 
 	// 自动迁移表结构
 	models.AutoMigrateUserInfoTable(DB)
+	models.AutoMigrateFileInfoTable(DB)
 }
 
 // 读取环境变量的实用程序函数

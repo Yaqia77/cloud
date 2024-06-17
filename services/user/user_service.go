@@ -30,7 +30,6 @@ func CheckEmail(email string) bool {
 
 func LoginUser(email, password string) (models.UserInfoResponse, error) {
 	var user models.UserInfo
-	var userResponse models.UserInfoResponse
 	if flag := utils.IsEmailValid(email); !flag {
 		return models.UserInfoResponse{}, errors.New("邮箱格式不正确")
 	}
@@ -42,28 +41,39 @@ func LoginUser(email, password string) (models.UserInfoResponse, error) {
 		return models.UserInfoResponse{}, err
 
 	}
-	token, err := utils.GenerateJWT(user.Username)
+	token, err := utils.GenerateJWT(int(user.UserID))
 	if err != nil {
 		return models.UserInfoResponse{}, err
 	}
-	userResponse.Token = token
-	userResponse.Username = user.Username
-	userResponse.Email = user.Email
-	userResponse.Avatar = user.Avatar
-	userResponse.Status = user.Status
-	userResponse.UseSpace = user.UseSpace
-	userResponse.MaxSpace = user.MaxSpace
-	userResponse.CreatedAt = user.CreatedAt
-	userResponse.LastLoginAt = user.LastLoginAt
+	result := models.UserInfoResponse{
+		UserID:      user.UserID,
+		Token:       token,
+		Username:    user.Username,
+		Email:       user.Email,
+		Avatar:      user.Avatar,
+		Status:      user.Status,
+		UseSpace:    user.UseSpace,
+		MaxSpace:    user.MaxSpace,
+		CreatedAt:   user.CreatedAt,
+		LastLoginAt: user.LastLoginAt,
+	}
 
-	return userResponse, nil
+	return result, nil
 
 }
 
 func UpdateUser(userinfo models.UserInfo) (models.UserInfo, error) {
-	if err := mysql.DB.Model(&models.UserInfo{}).Where("email = ?", userinfo.Email).Update("password", utils.CheckPasswordHash(userinfo.Password, userinfo.Password)).Error; err != nil {
+	// 查询用户记录
+	var existingUser models.UserInfo
+	if err := mysql.DB.Where("email = ?", userinfo.Email).First(&existingUser).Error; err != nil {
 		return models.UserInfo{}, err
 	}
-	return userinfo, nil
-}
 
+	// 更新密码
+
+	if err := mysql.DB.Save(&existingUser).Error; err != nil {
+		return models.UserInfo{}, err
+	}
+
+	return existingUser, nil
+}
